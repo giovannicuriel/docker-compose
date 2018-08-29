@@ -62,7 +62,7 @@ services:
         max-size: 100m
 
   iotagent-mqtt:
-    image: dojot/iotagent-mosca
+    image: dojot/iotagent-mosca:statistics
     depends_on:
       - mosca-redis
       - kafka
@@ -337,6 +337,17 @@ services:
     depends_on:
       - postgres
 
+  prometheus:
+    image: "prom/prometheus"
+    restart: always
+    logging:
+      driver: json-file
+      options:
+        max-size: 100m
+    ports:
+      - 9090:9090
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:Z
 
 networks:
   flowbroker:
