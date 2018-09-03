@@ -21,6 +21,6 @@ scrape_configs:
   scheme: http
   static_configs:
   - targets:
-    - localhost:3000
+    - iotagent-mqtt:3000
 
 
