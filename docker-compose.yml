@@ -14,7 +14,7 @@ services:
   #     - ./certs/default.conf:/etc/nginx/conf.d/default.conf
 
   history:
-    image: dojot/history
+    image: dojot/history:58.2-20190321
     restart: always
     depends_on:
       - mongodb
@@ -27,17 +27,17 @@ services:
         max-size: 100m
 
   persister:
-    image: dojot/persister
+    image: giovannicuriel/persister:bugfix_attr-dict
+    #image: dojot/persister:58.2-20190321
     restart: always
     depends_on:
       - mongodb
-      - auth
       - kafka
       - data-broker
     environment:
       FALCON_SETTINGS_MODULE: 'history.settings.docker'
       DOJOT_MANAGEMENT_USER: 'persister'
-      KAFKA_GROUP_ID: 'persister-group'
+      KAFKA_GROUP_ID: 'persister-group-2'
     logging:
       driver: json-file
       options:
@@ -61,7 +61,7 @@ services:
         max-size: 100m
 
   iotagent-mqtt:
-    image: dojot/iotagent-mosca
+    image: dojot/iotagent-mosca:58.2-20190321
     depends_on:
       - mosca-redis
       - kafka
@@ -75,14 +75,14 @@ services:
     environment:
       DOJOT_MANAGEMENT_USER: 'iotagent-mqtt'
       KAFKA_GROUP_ID: 'iotagent-mqtt-group'
-      ALLOW_UNSECURED_MODE: 'false'
+      ALLOW_UNSECURED_MODE: 'true'
     logging:
       driver: json-file
       options:
         max-size: 100m
 
   gui:
-    image: dojot/gui:latest
+    image: dojot/gui:58.2-20190321
     restart: always
     logging:
       driver: json-file
@@ -90,7 +90,7 @@ services:
         max-size: 100m
 
   data-broker:
-    image: dojot/data-broker
+    image: dojot/data-broker:58.2-20190321
     restart: always
     depends_on:
       - kafka
@@ -119,36 +119,8 @@ services:
       options:
         max-size: 100m
 
-  image-manager:
-    image: dojot/image-manager:latest
-    restart: always
-    depends_on:
-      - postgres
-      - minio
-    logging:
-      driver: json-file
-      options:
-        max-size: 100m
-    environment:
-      # TODO: The following should be unique for each environment
-      S3ACCESSKEY: 9HEODSF6WQN5EZ39DM7Z
-      S3SECRETKEY: fT5nAgHR9pkj0yYsBdc4p+PPq6ArjshcPdz0HA6W
-
-  minio:
-    image: "minio/minio"
-    restart: always
-    logging:
-      driver: json-file
-      options:
-        max-size: 100m
-    environment:
-      # TODO: The following should be unique for each environment
-      MINIO_ACCESS_KEY: 9HEODSF6WQN5EZ39DM7Z
-      MINIO_SECRET_KEY: fT5nAgHR9pkj0yYsBdc4p+PPq6ArjshcPdz0HA6W
-    command: server /data
-
   device-manager:
-    image: dojot/device-manager
+    image: dojot/device-manager:58.2-20190321
     restart: always
     environment:
       # TODO: Fill these env variables with suitable values
@@ -174,7 +146,7 @@ services:
         max-size: 100m
 
   auth:
-    image: dojot/auth:latest
+    image: dojot/auth:58.2-20190321
     restart: always
     depends_on:
       - apigw
@@ -185,7 +157,7 @@ services:
         condition: service_healthy
     environment:
       AUTH_DB_HOST: "postgres"
-      AUTH_DB_USER: "kong"
+      AUTH_DB_USER: "postgres"
       AUTH_KONG_URL: "http://apigw:8001"
       AUTH_CACHE_HOST: "auth-redis"
       # This is used to select the type of cache to be used. Allowed values are "redis" or "nocache"
@@ -235,7 +207,7 @@ services:
         max-size: 100m
 
   kong-migration:
-    image: dojot/kong:latest
+    image: dojot/kong:58.2-20190321
     depends_on:
       postgres:
         condition: service_healthy
@@ -246,7 +218,7 @@ services:
     restart: on-failure
 
   apigw:
-    image: dojot/kong:latest
+    image: dojot/kong:58.2-20190321
     restart: always
     depends_on:
       postgres:
@@ -283,7 +255,7 @@ services:
         max-size: 100m
 
   flowbroker:
-    image: dojot/flowbroker:latest
+    image: giovannicuriel/flowbroker:ftp
     restart: always
     environment:
       DEPLOY_ENGINE: "docker"
@@ -304,7 +276,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:Z
 
   flowbroker-context-manager:
-    image: dojot/flowbroker-context-manager:latest
+    image: dojot/flowbroker-context-manager:58.2-20190321
     restart: always
     environment:
       ZOOKEEPER_HOST: zookeeper
@@ -348,10 +320,7 @@ services:
         max-size: 100m
 
   ejbca:
-    image: "dojot/ejbca-rest"
-    environment:
-      DOJOT_MANAGEMENT_USER: 'ejbca'
-      KAFKA_GROUP_ID: 'ejbca-group'
+    image: "dojot/ejbca-rest:58.2-20190321"
     restart: always
     logging:
       driver: json-file
@@ -360,7 +329,7 @@ services:
 
 
   data-manager:
-    image: "dojot/data-manager"
+    image: "dojot/data-manager:58.2-20190321"
     restart: always
     depends_on:
       - flowbroker
@@ -372,16 +341,6 @@ services:
     depends_on:
       - postgres
 
-  cron:
-    image: dojot/cron
-    depends_on:
-      - kafka
-      - data-broker
-      - auth
-      - mongodb
-    ports:
-      - 5000:5000
-    restart: always
 
 networks:
   flowbroker:
